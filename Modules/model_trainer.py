@@ -12,12 +12,12 @@ from tabulate import tabulate
 
 from data_analyzer import data_loader, data_analyzer
 
-def identify_target(df):
-    target = ""
-    while target not in df.columns:
-        print("which of the following is the target column: \n", list(df.columns) )
-        target = input()
-    return target
+# def identify_target(df):
+#     target = ""
+#     while target not in df.columns:
+#         print("which of the following is the target column: \n", list(df.columns) )
+#         target = input()
+#     return target
 
 def separate(df, target):
     X = df.drop(target, axis = 1)
@@ -95,31 +95,31 @@ def model_trainer(problem_type, model_suggested, X, y, scoring_metric, folds ):
 def Model_comparison(result):    
 
     best_performance_dict = dict(sorted(result.items(), key = lambda x: x[1],  reverse = True))
-
     table = [(model, score) for model, score in best_performance_dict.items()]
-
-    print(tabulate(table, headers = ["model" , "Cross Val Score"], tablefmt = "fancy_grid"))
+    # print(tabulate(table, headers = ["model" , "Cross Val Score"], tablefmt = "fancy_grid"))
     
     best_model = next(iter(best_performance_dict))
     score = next(iter(best_performance_dict.values()))
-    print("Best model = ", best_model)
-    print("Cross Validation Score = ", score)
 
-def run_pipeline():
-    df = data_loader("train.csv").copy()
-    profile = data_analyzer(df)
-    df_clean = preprocess_pipeline(df, profile)
-    # X_train,X_test,y_train,y_test = split(df_clean)
-    target = identify_target(df_clean)
+    return best_model, score
+    
+
+def trainer_pipeline(df_clean, target):
+    # df = data_loader("train.csv").copy()
+    # profile = data_analyzer(df)
+    # df_clean = preprocess_pipeline(df, profile)
+    # # X_train,X_test,y_train,y_test = split(df_clean)
+    # # target = identify_target(df_clean)
     X, y = separate(df_clean, target)
     problem_type, model_suggested, scoring_metric, folds = problem_type_detector(y)
     result = model_trainer(problem_type, model_suggested, X, y, scoring_metric, folds)
-    Model_comparison(result)
-    print("Target Column = " , target)
-    print("Problem Type = " , problem_type)
-    print("Models Tested = " , len(model_suggested))
-    print("Scoring Metric = " , scoring_metric)
+    best_model, score = Model_comparison(result)
+    # print("Target Column = " , target)
+    # print("Problem Type = " , problem_type)
+    # print("Models Tested = " , len(model_suggested))
+    # print("Scoring Metric = " , scoring_metric)
+    return problem_type, model_suggested, scoring_metric, result, best_model, score
 
 if __name__ == "__main__":
-    run_pipeline()
+    trainer_pipeline()
 

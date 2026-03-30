@@ -3,9 +3,10 @@ st.set_page_config(layout="wide")
 import pandas as pd
 from preprocessing import preprocess_pipeline
 from data_analyzer import pipeline
-from model_trainer import run_pipeline
+from model_trainer import trainer_pipeline
 
-st.title("ML Pipeline Visualizer")
+left, middle, right = st.columns(3)
+middle.title(f"Ml_Pipeline_Visualizer", text_alignment = "justify", width = "content")
 st.subheader("Developed by YashRawat")
 st.markdown(
     """
@@ -18,6 +19,8 @@ st.markdown(
 
     """)
 st.divider()
+left, middle, right = st.columns(3)
+middle.title("Upload Data", text_alignment = "center", width = "content")
 st.subheader("Need a try, upload your csv below")
 data_path = st.file_uploader("Upload your csv here", type="csv")
 
@@ -31,12 +34,13 @@ else :
 st.divider()
 
 if data_path:
-    st.title("Analysis")
+    left, middle, right = st.columns(3)
+    middle.title("Analysis")
 
-    st.header("Sample Data:")
+    middle.header("Sample Data:")
     st.write(df.sample(5))
-
-    st.header("Basic Overview:")
+    left, middle, right = st.columns(3)
+    middle.header("Basic Overview:")
     st.divider()
     cols = st.columns(len(data["basic"]))
     for i, (label, value) in enumerate(data["basic"].items()):
@@ -44,7 +48,8 @@ if data_path:
             st.metric(label=label, value=value)
 
     st.divider()
-    st.header("Quality:")
+    left, middle, right = st.columns(3)
+    middle.header("Quality:")
     st.divider()
     #Total null count
     n_values = data["quality"]["total_null"]
@@ -74,7 +79,8 @@ if data_path:
 
 
     st.divider()
-    st.header("Columns-wise Analysis:")
+    left, middle, right = st.columns(3)
+    middle.header("Columns-wise Analysis:")
     st.divider()
     col1, col2,col3= st.columns(3)
     with col1:
@@ -96,7 +102,8 @@ if data_path:
 
 
     st.divider()
-    st.header("In Depth Report:")
+    left, middle, right = st.columns(3)
+    middle.header("In Depth Report:")
     st.divider()
     col1, col2,col3,col4 = st.columns(4)
 
@@ -127,7 +134,8 @@ if data_path:
 
 
     st.divider()
-    st.header("Suggested Preprocessing Steps:")
+    left, middle, right = st.columns(3)
+    middle.header("Suggested Preprocessing Steps:")
     st.divider()
     col1,col2,col3, col4, col5= st.columns(5)
     with col1:
@@ -168,21 +176,56 @@ if data_path:
     
     st.divider(width = "stretch")
     left, middle, right = st.columns(3)
-    
+    middle.title("Preprocessing")    
+    if "df_clean" not in st.session_state:
+        st.session_state.df_clean = None
     if middle.button("Run Preprocessing Steps", type = "primary", width = "stretch"):
-        df_clean = preprocess_pipeline(df, data)
-
+        st.session_state.df_clean = preprocess_pipeline(df, data)
+    if st.session_state.df_clean is not None:
         st.header("Preprocessed Data:")
-        st.write(df_clean.sample(5))
+        st.write(st.session_state.df_clean.sample(5))
     
-        st.divider(width = 10)
-
-        columns = list(df_clean.columns)
-        target =st.selectbox(
+    st.divider()
+    if st.session_state.df_clean is not None:
+        columns = list(st.session_state.df_clean.columns)
+        st.session_state.target =st.selectbox(
             "Select your target column next for cross validation:", 
             columns,index=None,  placeholder = "choose an option"
             )
-        st.subheader(f"selected target : {target}")
+        if st.session_state.target is not None: 
+            st.subheader(f"selected target : {st.session_state.target}")
+            left, middle, right = st.columns(3)
+            middle.header("Model Evaluation")
+            if middle.button("Start Model Evaluation", type = "primary", width = "stretch"):
+                st.session_state.problem_type, st.session_state.model_suggested, st.session_state.scoring_metric, st.session_state.result, st.session_state.best_model, st.session_state.score= trainer_pipeline(st.session_state.df_clean, st.session_state.target)
+
+            if st.session_state.problem_type is not None:
+                st.subheader(f"Problem Type: {st.session_state.problem_type}", divider=True)                
+
+            if st.session_state.model_suggested is not None:
+                st.subheader("Model suggested:")
+                mod_list = []
+                m_list= ""
+                for name, mod in st.session_state.model_suggested:
+                    m_list += f"* {name}\n"
+                st.markdown(m_list)
+            
+            if st.session_state.scoring_metric is not None:
+                st.subheader(f"Scoring Metric: {st.session_state.scoring_metric}")
+            
+            if st.session_state.result is not None:
+                left,mid,right = st.columns(3)
+                mid.subheader("Cross Val Score from suggested models")
+                result_df = pd.DataFrame(st.session_state.result.items(), columns = ["Model", "Cross Validation Score"])
+                mid.dataframe(result_df, hide_index=True)
+         
+            
+            if st.session_state.best_model is not None:
+                st.subheader(f"Best Model: {st.session_state.best_model}")
+
+            if st.session_state.score is not None:
+                st.subheader(f"Score: {st.session_state.score}")
+            
 
 
 
