@@ -195,6 +195,12 @@ if data_path:
         if st.session_state.target is not None: 
             st.subheader(f"selected target : {st.session_state.target}")
             left, middle, right = st.columns(3)
+            st.session_state.problem_type = None
+            st.session_state.model_suggested = None
+            st.session_state.scoring_metric = None
+            st.session_state.result = None
+            st.session_state.best_model = None
+            st.session_state.score = None
             middle.header("Model Evaluation")
             if middle.button("Start Model Evaluation", type = "primary", width = "stretch"):
                 st.session_state.problem_type, st.session_state.model_suggested, st.session_state.scoring_metric, st.session_state.result, st.session_state.best_model, st.session_state.score= trainer_pipeline(st.session_state.df_clean, st.session_state.target)
@@ -226,7 +232,3 @@ if data_path:
             if st.session_state.score is not None:
                 st.subheader(f"Score: {st.session_state.score}")
             
-
-
-
-

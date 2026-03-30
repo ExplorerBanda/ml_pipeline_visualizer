@@ -122,4 +122,3 @@ def trainer_pipeline(df_clean, target):
 
 if __name__ == "__main__":
     trainer_pipeline()
-
